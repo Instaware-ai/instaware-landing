@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 const PAIN_POINTS = [
   {
@@ -65,11 +65,11 @@ const TESTIMONIAL_SCENARIOS = [
   },
 ];
 
-function useInView(threshold = 0.15): [React.RefObject<HTMLDivElement | null>, boolean] {
-  const ref = useRef<HTMLDivElement | null>(null);
+function useInView(threshold = 0.15): [React.RefCallback<HTMLDivElement>, boolean] {
   const [visible, setVisible] = useState(false);
+  const [el, setEl] = useState<HTMLDivElement | null>(null);
+
   useEffect(() => {
-    const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
@@ -77,7 +77,12 @@ function useInView(threshold = 0.15): [React.RefObject<HTMLDivElement | null>, b
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [threshold]);
+  }, [el, threshold]);
+
+  const ref = useCallback((node: HTMLDivElement | null) => {
+    setEl(node);
+  }, []);
+
   return [ref, visible];
 }
 
